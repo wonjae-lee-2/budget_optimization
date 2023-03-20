@@ -1,25 +1,40 @@
 import boto3
+import zipfile
 
 
 def main(
-    bucket: str = "lee-budget-optimization",
-    key: str = "OPRI_202303.zip",
-    filename: str = "tmp/OPRI_202303.zip",
+    bucket: str,
+    download_folder: str,
+    filelist: list[str],
 ):
-    get_opri_data(bucket, key, filename)
+    filename = get_opri_data(bucket, download_folder)
+    extract_opri_data(download_folder, filename, filelist)
 
 
 def get_opri_data(
     bucket: str,
-    key: str,
+    download_folder: str,
+) -> str:
+    s3 = boto3.resource("s3")
+    filename = sorted(
+        [obj.key for obj in s3.Bucket(bucket).objects.all()], reverse=True
+    )[0]
+    download_path = f"{download_folder}/{filename}"
+    s3.Bucket(bucket).download_file(filename, download_path)
+    return filename
+
+
+def extract_opri_data(
+    download_folder: str,
     filename: str,
+    filelist: list[str],
 ):
-    s3 = boto3.client("s3")
-    s3.download_file(bucket, key, filename)
+    download_path = f"{download_folder}/{filename}"
+    with zipfile.ZipFile(download_path, "r") as myzip:
+        for file in filelist:
+            if file in myzip.namelist():
+                myzip.extract(file, download_folder)
 
 
 if __name__ == "__main__":
-    bucket: str = "lee-budget-optimization"
-    key: str = "OPRI_202303.zip"
-    filename: str = "tmp/OPRI_202303.zip"
-    main(bucket, key, filename)
+    main("lee-budget-optimization", "tmp", ["OPRI_DATA_NATIONAL.csv", "OPRI_LABEL.csv"])
