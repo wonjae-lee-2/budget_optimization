@@ -16,6 +16,7 @@ jupyterlab = "~3.6"
 openpyxl = "~3.1"
 pandas = "~1.5"
 s3fs = "~2023.1"
+debugpy = "~1.4"
 
 [tool.poetry.group.dev.dependencies]
 black = "~23.1"
