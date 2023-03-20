@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "budget_optimization"
+version = "0.1.0"
+description = ""
+license = "MIT"
+authors = ["Wonjae Lee <wonjae.lee.2@gmail.com>"]
+readme = "README.md"
+repository = "https://github.com/wonjae-lee-2/budget_optimization"
+packages = [{include = "budget_optimization", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "~3.11"
+gurobipy = "~10.0"
+gurobipy-pandas = "~1.0"
+jupyterlab = "~3.6"
+openpyxl = "~3.1"
+pandas = "~1.5"
+s3fs = "~2023.1"
+
+[tool.poetry.group.dev.dependencies]
+black = "~23.1"
+flake8 = "~6.0"
+jupyterlab = "~3.6"
+pytest = "~7.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
