@@ -14,85 +14,66 @@ def test_download_folder(tmp_path_factory):
 
 
 @pytest.fixture
-def test_filedict():
-    return {
-        "label": "OPRI_LABEL.csv",
-        "data": "OPRI_DATA_NATIONAL.csv",
-    }
-
-
-@pytest.fixture
-def test_filename():
+def test_zip_file():
     return "OPRI_230221.zip"
 
 
 @pytest.fixture
+def test_data_file():
+    return "OPRI_DATA_NATIONAL.csv"
+
+
+@pytest.fixture
 def test_indicators():
-    return [
-        "X.US.1.FSGOV",
-        "X.US.2T3.FSGOV",
-        "20062",
-        "20082",
-        "PRP.1",
-        "PRP.2T3",
-    ]
+    return {
+        "X.US.1.FSGOV": "expenditure_primary",
+        "X.US.2T3.FSGOV": "expenditure_secondary",
+        "20062": "enrollment_primary",
+        "20082": "enrollment_secondary",
+        "PRP.1": "private_primary",
+        "PRP.2T3": "private_secondary",
+    }
 
 
-def test_get_opri_zipfile(
+def test_get_opri_file(
     test_bucket,
-    test_filename,
+    test_zip_file,
     test_download_folder,
 ):
 
-    filename = core.get_opri_zipfile(
+    filename = core.get_opri_file(
         test_bucket,
         test_download_folder,
     )
 
-    assert filename == test_filename
+    assert filename == test_zip_file
     assert Path(f"{test_download_folder}/{filename}").exists()
 
 
-def test_extract_opri_files(
-    test_filename,
-    test_filedict,
+def test_extract_opri_data(
+    test_zip_file,
+    test_data_file,
     test_download_folder,
 ):
 
-    core.extract_opri_files(
+    core.extract_opri_data(
         test_download_folder,
-        test_filename,
-        test_filedict,
+        test_zip_file,
+        test_data_file,
     )
 
-    for file in test_filedict.values():
-        assert Path(f"{test_download_folder}/{file}").exists()
-
-
-def test_read_opri_label(
-    test_download_folder,
-    test_filedict,
-    test_indicators,
-):
-
-    df = core.read_opri_label(
-        test_download_folder,
-        test_filedict,
-        test_indicators,
-    )
-
-    assert df.shape == (6, 2)
+    assert Path(f"{test_download_folder}/{test_data_file}").exists()
 
 
 def test_read_opri_data(
     test_download_folder,
-    test_filedict,
+    test_data_file,
     test_indicators,
 ):
 
     df = core.read_opri_data(
         test_download_folder,
-        test_filedict,
+        test_data_file,
         test_indicators,
     )
 

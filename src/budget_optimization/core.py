@@ -6,80 +6,59 @@ import zipfile
 def main(
     bucket: str,
     download_folder: str,
-    filedict: dict[str, str],
-    indicators: list[str],
+    data_file: str,
+    indicators: dict[str, str],
 ):
-    filename = get_opri_zipfile(
+    downloaded_file = get_opri_file(
         bucket,
         download_folder,
     )
-    extract_opri_files(
+    extract_opri_data(
         download_folder,
-        filename,
-        filedict,
-    )
-    df_label = read_opri_label(
-        download_folder,
-        filedict,
-        indicators,
+        downloaded_file,
+        data_file,
     )
     df_data = read_opri_data(
         download_folder,
-        filedict,
+        data_file,
         indicators,
     )
 
 
-def get_opri_zipfile(
+def get_opri_file(
     bucket: str,
     download_folder: str,
 ) -> str:
     s3 = boto3.resource("s3")
-    filename = sorted(
+    file_to_download = sorted(
         [obj.key for obj in s3.Bucket(bucket).objects.all()],
         reverse=True,
     )[0]
-    download_path = f"{download_folder}/{filename}"
-    s3.Bucket(bucket).download_file(filename, download_path)
-    return filename
+    download_path = f"{download_folder}/{file_to_download}"
+    s3.Bucket(bucket).download_file(file_to_download, download_path)
+    return file_to_download
 
 
-def extract_opri_files(
+def extract_opri_data(
     download_folder: str,
-    filename: str,
-    filedict: dict[str, str],
+    downloaded_file: str,
+    file_to_extract: str,
 ):
-    download_path = f"{download_folder}/{filename}"
+    download_path = f"{download_folder}/{downloaded_file}"
     with zipfile.ZipFile(download_path, "r") as myzip:
-        for file in filedict.values():
-            if file in myzip.namelist():
-                myzip.extract(file, download_folder)
-
-
-def read_opri_label(
-    download_folder: str,
-    filedict: dict[str, str],
-    indicators: list[str],
-) -> pd.DataFrame:
-    filepath = f"{download_folder}/{filedict['label']}"
-    df = (
-        pd.read_csv(filepath)
-        .rename(str.lower, axis="columns")
-        .loc[lambda df: df["indicator_id"].isin(indicators)]
-    )
-    return df
+        myzip.extract(file_to_extract, download_folder)
 
 
 def read_opri_data(
     download_folder: str,
-    filedict: dict[str, str],
-    indicators: list[str],
+    extracted_file: str,
+    indicators: dict[str, str],
 ) -> pd.DataFrame:
-    filepath = f"{download_folder}/{filedict['data']}"
+    filepath = f"{download_folder}/{extracted_file}"
     df = (
         pd.read_csv(filepath)
         .rename(str.lower, axis="columns")
-        .loc[lambda df: df["indicator_id"].isin(indicators)]
+        .loc[lambda df: df["indicator_id"].isin(indicators.keys())]
     )
     return df
 
@@ -88,16 +67,13 @@ if __name__ == "__main__":
     main(
         "lee-budget-optimization",
         "tmp",
+        "OPRI_DATA_NATIONAL.csv",
         {
-            "label": "OPRI_LABEL.csv",
-            "data": "OPRI_DATA_NATIONAL.csv",
+            "X.US.1.FSGOV": "expenditure_primary",
+            "X.US.2T3.FSGOV": "expenditure_secondary",
+            "20062": "enrollment_primary",
+            "20082": "enrollment_secondary",
+            "PRP.1": "private_primary",
+            "PRP.2T3": "private_secondary",
         },
-        [
-            "X.US.1.FSGOV",
-            "X.US.2T3.FSGOV",
-            "20062",
-            "20082",
-            "PRP.1",
-            "PRP.2T3",
-        ],
     )
