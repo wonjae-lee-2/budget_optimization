@@ -24,7 +24,7 @@ def test_data_file():
 
 
 @pytest.fixture
-def test_indicators():
+def test_opri_indicators():
     return {
         "X.US.1.FSGOV": "expenditure_primary",
         "X.US.2T3.FSGOV": "expenditure_secondary",
@@ -32,6 +32,14 @@ def test_indicators():
         "20082": "enrollment_secondary",
         "PRP.1": "private_primary",
         "PRP.2T3": "private_secondary",
+    }
+
+
+@pytest.fixture
+def test_wb_indicators():
+    return {
+        "NY.GDP.MKTP.KD.ZG": "gdp_growth",
+        "SP.POP.GROW": "population_growth",
     }
 
 
@@ -68,13 +76,24 @@ def test_extract_opri_data(
 def test_read_opri_data(
     test_download_folder,
     test_data_file,
-    test_indicators,
+    test_opri_indicators,
 ):
 
     df = core.read_opri_data(
         test_download_folder,
         test_data_file,
-        test_indicators,
+        test_opri_indicators,
     )
 
-    assert df.shape == (31812, 6)
+    assert df.shape == (9069, 8)
+
+
+def test_get_wb_data(
+    test_wb_indicators,
+):
+
+    df = core.get_wb_data(
+        test_wb_indicators,
+    )
+
+    assert df.shape == (5852, 5)
